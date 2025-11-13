@@ -149,6 +149,12 @@ export default async function Home() {
             >
               Ouvrir l&apos;agenda RDV
             </Link>
+            <Link
+              href="/facturation"
+              className="rounded-full border border-emerald-400/60 px-6 py-3 text-base font-semibold text-emerald-200 transition hover:bg-emerald-500/10"
+            >
+              Gérer la facturation
+            </Link>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             {featureBlocks.map((feature) => (

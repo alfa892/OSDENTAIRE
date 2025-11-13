@@ -12,7 +12,10 @@
     "patients:seed": "npm --workspace apps/api run patients:seed",
     "patients:anonymize": "npm --workspace apps/api run patients:anonymize",
     "appointments:seed": "npm --workspace apps/api run appointments:seed",
-    "agenda:refresh": "npm --workspace apps/api run agenda:refresh"
+    "agenda:refresh": "npm --workspace apps/api run agenda:refresh",
+    "invoices:seed": "npm --workspace apps/api run invoices:seed",
+    "invoices:remind": "npm --workspace apps/api run invoices:remind",
+    "invoices:healthcheck": "npm --workspace apps/api run invoices:healthcheck"
   },
   "workspaces": [
     "apps/web",

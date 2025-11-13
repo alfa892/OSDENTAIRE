@@ -398,6 +398,300 @@ components:
         cursor:
           type: integer
       required: [type, data, cursor]
+    InvoiceTotals:
+      type: object
+      properties:
+        subtotal:
+          type: number
+          description: Montant HT en euros.
+        tax:
+          type: number
+          description: TVA en euros.
+        total:
+          type: number
+          description: Montant TTC en euros.
+        paid:
+          type: number
+          description: Somme déjà réglée.
+        balance:
+          type: number
+          description: Solde restant dû.
+      required: [subtotal, tax, total, paid, balance]
+    InvoiceItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        description:
+          type: string
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+          description: Prix unitaire HT en euros.
+        taxRate:
+          type: number
+          description: Taux de TVA (ex 0.2).
+        totalExclTax:
+          type: number
+          description: Total HT en euros.
+        totalInclTax:
+          type: number
+          description: Total TTC en euros.
+      required: [id, description, quantity, unitPrice, taxRate, totalExclTax, totalInclTax]
+    InvoicePayment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          type: string
+          enum: [patient, mutuelle, insurance, other]
+        method:
+          type: string
+        reference:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        amount:
+          type: number
+          description: Montant payé en euros.
+        paidAt:
+          type: string
+          format: date-time
+      required: [id, source, method, amount, paidAt]
+    InvoiceListItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        reference:
+          type: string
+        status:
+          type: string
+          enum: [draft, issued, paid]
+        dueDate:
+          type: string
+          format: date-time
+        total:
+          type: number
+        balance:
+          type: number
+        patient:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            fullName:
+              type: string
+          required: [id, fullName]
+        payer:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            type:
+              type: string
+          required: [id, name, type]
+        pdfUrl:
+          type: string
+          format: uri
+          nullable: true
+      required: [id, reference, status, dueDate, total, balance, patient, payer]
+    InvoiceDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        reference:
+          type: string
+        status:
+          type: string
+          enum: [draft, issued, paid]
+        dueDate:
+          type: string
+          format: date-time
+        issuedAt:
+          type: string
+          format: date-time
+          nullable: true
+        paidAt:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        totals:
+          $ref: '#/components/schemas/InvoiceTotals'
+        patient:
+          type: object
+          properties:
+            id:
+              type: string
+            fullName:
+              type: string
+            reference:
+              type: string
+          required: [id, fullName, reference]
+        payer:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            type:
+              type: string
+            email:
+              type: string
+              nullable: true
+          required: [id, name, type]
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceItem'
+        payments:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoicePayment'
+        insuranceClaim:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+            status:
+              type: string
+            coveragePercent:
+              type: integer
+            coveredAmount:
+              type: number
+            claimNumber:
+              type: string
+              nullable: true
+        pdfUrl:
+          type: string
+          format: uri
+          nullable: true
+      required: [id, reference, status, dueDate, totals, patient, payer, items, payments]
+    CreateInvoiceRequest:
+      type: object
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        payerId:
+          type: string
+          format: uuid
+        payer:
+          type: object
+          properties:
+            name:
+              type: string
+            type:
+              type: string
+              enum: [patient, mutuelle, insurance, third_party]
+            email:
+              type: string
+              format: email
+            phone:
+              type: string
+          required: [name]
+        dueDate:
+          type: string
+          format: date-time
+        notes:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              description:
+                type: string
+              quantity:
+                type: integer
+              unitPrice:
+                type: number
+              taxRateBps:
+                type: integer
+            required: [description, unitPrice]
+        issueNow:
+          type: boolean
+        insuranceClaim:
+          type: object
+          properties:
+            payerId:
+              type: string
+              format: uuid
+            coveragePercent:
+              type: integer
+            coveredAmount:
+              type: number
+            claimNumber:
+              type: string
+      required: [patientId, dueDate]
+    AddInvoiceItemsRequest:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              description:
+                type: string
+              quantity:
+                type: integer
+              unitPrice:
+                type: number
+              taxRateBps:
+                type: integer
+            required: [description, unitPrice]
+        issueNow:
+          type: boolean
+      required: [items]
+    AddInvoicePaymentRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+        method:
+          type: string
+        source:
+          type: string
+          enum: [patient, mutuelle, insurance, other]
+        reference:
+          type: string
+        notes:
+          type: string
+        paidAt:
+          type: string
+          format: date-time
+        payerId:
+          type: string
+          format: uuid
+        payer:
+          type: object
+          properties:
+            name:
+              type: string
+            type:
+              type: string
+            email:
+              type: string
+              format: email
+      required: [amount, method, source]
 paths:
   /api/patients:
     get:
@@ -493,6 +787,169 @@ paths:
                     $ref: '#/components/schemas/PatientDetail'
         '401': { description: Auth manquante, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '403': { description: RBAC interdit, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '500': { description: Erreur interne, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/invoices:
+    get:
+      summary: Liste les factures avec filtre statut/texte
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, issued, paid]
+        - in: query
+          name: q
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Liste paginée des factures
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InvoiceListItem'
+                  meta:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      limit:
+                        type: integer
+                      offset:
+                        type: integer
+                required: [data, meta]
+        '401': { description: Auth manquante, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: RBAC praticien/admin requis, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '422': { description: Paramètres invalides, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '500': { description: Erreur interne, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    post:
+      summary: Crée une facture (draft ou issueNow)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvoiceRequest'
+      responses:
+        '201':
+          description: Facture créée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/InvoiceDetail'
+        '401': { description: Auth manquante, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: RBAC interdit, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: Patient/payer introuvable, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '422': { description: Charge utile invalide, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '500': { description: Erreur interne, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/invoices/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Retourne une facture détaillée
+      responses:
+        '200':
+          description: Facture trouvée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/InvoiceDetail'
+        '401': { description: Auth manquante, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: RBAC interdit, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: Facture introuvable, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '422': { description: Paramètre invalide, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '500': { description: Erreur interne, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/invoices/{id}/items:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Ajoute des lignes de facturation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddInvoiceItemsRequest'
+      responses:
+        '201':
+          description: Facture mise à jour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/InvoiceDetail'
+        '401': { description: Auth manquante, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: RBAC interdit, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: Facture introuvable, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: Facture soldée, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '422': { description: Charge utile invalide, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '500': { description: Erreur interne, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+  /api/invoices/{id}/payments:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Enregistre un paiement patient/mutuelle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddInvoicePaymentRequest'
+      responses:
+        '201':
+          description: Facture mise à jour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/InvoiceDetail'
+        '401': { description: Auth manquante, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '403': { description: RBAC interdit, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '404': { description: Facture introuvable, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+        '409': { description: Facture non émise ou soldée, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '422': { description: Charge utile invalide, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
         '500': { description: Erreur interne, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
   /api/patients/{id}:

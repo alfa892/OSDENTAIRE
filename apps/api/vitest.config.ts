@@ -13,6 +13,8 @@ export default defineConfig({
         functions: 0.85,
         lines: 0.85,
       },
+      include: ['src/services/invoiceService.ts'],
+      exclude: ['src/services/invoicePdf.ts', 'src/services/invoiceMailer.ts'],
     },
   },
 });

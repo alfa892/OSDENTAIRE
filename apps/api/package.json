@@ -14,16 +14,24 @@
     "patients:seed": "tsx src/scripts/seedPatients.ts",
     "patients:anonymize": "tsx src/scripts/anonymizePatients.ts",
     "appointments:seed": "tsx src/scripts/seedAppointments.ts",
-    "agenda:refresh": "tsx src/scripts/recomputeAvailability.ts"
+    "agenda:refresh": "tsx src/scripts/recomputeAvailability.ts",
+    "invoices:seed": "tsx src/scripts/seedInvoices.ts",
+    "invoices:remind": "tsx src/scripts/sendInvoiceReminders.ts",
+    "invoices:healthcheck": "tsx src/scripts/healthcheckInvoicePdf.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.930.0",
+    "@aws-sdk/s3-request-presigner": "^3.930.0",
+    "@types/pdfkit": "^0.17.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.7",
     "express": "^5.1.0",
     "luxon": "^3.7.2",
     "nanoid": "^5.1.6",
+    "pdfkit": "^0.17.2",
     "pg": "^8.16.3",
+    "postmark": "^4.0.5",
     "zod": "^4.1.12"
   },
   "devDependencies": {

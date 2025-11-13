@@ -57,6 +57,11 @@ CORS_ORIGIN=http://localhost:3000
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/osdentaire
 PATIENTS_RETENTION_DAYS=730
 APPOINTMENTS_SLOT_MINUTES=15
+INVOICE_PDF_BUCKET=osdentaire-invoices
+TVA_RATE=0.2
+POSTMARK_API_KEY=changeme
+POSTMARK_FROM_EMAIL=facturation@osdentaire.local
+AWS_REGION=eu-west-3
 ```
 
 ### Frontend Next.js
@@ -73,7 +78,7 @@ NEXT_PUBLIC_DEMO_ROLE=assistant
 NEXT_PUBLIC_DEMO_USER=demo-assistant
 ```
 
-Pages disponibles : `/patients` (liste + drawer) et `/agenda` (vue hebdo colonne par praticien avec formulaire de création, annulation RBAC et polling temps réel).
+Pages disponibles : `/patients` (liste + drawer), `/agenda` (vue hebdo colonne par praticien avec formulaire de création, annulation RBAC et polling temps réel) et `/facturation` (table factures + détail, modales création/paiement).
 
 ## Base de données & scripts RGPD
 
@@ -83,9 +88,19 @@ npm run patients:seed     # insère 5 patients + consentements de démo
 npm run patients:anonymize # anonymise les patients supprimés au-delà de PATIENTS_RETENTION_DAYS
 npm run appointments:seed  # installe 2 praticiens + 1 semaine de RDV
 npm run agenda:refresh     # recalcule next_available_at pour chaque praticien
+npm run invoices:seed      # crée 3 factures de démo (PDF en stockage dédié)
+npm run invoices:remind    # relance email Postmark pour les factures en retard
+npm run invoices:healthcheck # vérifie la génération/signed URL des PDF
 ```
 
 > Les migrations s'appuient sur Drizzle. Un log `app_migrations` empêche les doubles exécutions. Le seed passe par le service applicatif pour garantir les validations et l'écriture des consentements.
+
+### Module facturation
+
+- Endpoints disponibles : `POST /api/invoices`, `GET /api/invoices`, `GET /api/invoices/:id`, `POST /api/invoices/:id/items`, `POST /api/invoices/:id/payments` (RBAC praticien/admin).
+- Service `invoiceService` : calcul TVA 20 %, génération PDF (PDFKit + S3 `INVOICE_PDF_BUCKET`), URL signée courte durée, mails Postmark (`POSTMARK_API_KEY`, `POSTMARK_FROM_EMAIL`) et rappels (`npm run invoices:remind`).
+- UI `/facturation` (listing, filtre statut, fiche détaillée, modales création/paiement, lien PDF).
+- Jobs Render : `invoices-remind` (relances quotidiennes) et `invoices-pdf-healthcheck` (vérifie la dispo S3/Signed URL).
 
 ## Tests & qualité
 

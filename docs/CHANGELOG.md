@@ -10,6 +10,11 @@ Format obligatoire pour chaque entrée :
 Entrées réelles à ajouter ci-dessous par ordre chronologique (plus récent en haut).
 
 <!-- INSERT NEW CHANGELOG ITEMS ABOVE THIS LINE -->
+- 2025-11-13T13:45:00Z | agent_id=A103 | module=Facturation | portée=API+DB+UI+Docs
+  fichiers=[apps/api/src/db/schema.ts,apps/api/drizzle/0003_invoices.sql,apps/api/src/services/invoiceService.ts,apps/api/src/routes/invoices.ts,apps/web/src/app/facturation/facturationModule.tsx,docs/facturation.md,render.yaml,apps/api/src/scripts/seedInvoices.ts]
+  endpoints=[POST /api/invoices,GET /api/invoices,GET /api/invoices/:id,POST /api/invoices/:id/items,POST /api/invoices/:id/payments]
+  tests=[tests/invoiceService.test.ts,tests/invoices.routes.test.ts]
+  décision="TVA 20 % avec PDFKit+S3 et mails Postmark, nouveaux scripts seeds/reminders/healthcheck, UI Next.js (listing + modales paiement) et jobs Render dédiés"
 - 2025-11-13T14:45:12Z | agent_id=A102 | module=RDV & Agenda | portée=API+DB+UI
   fichiers=[apps/api/src/services/appointmentService.ts,apps/api/src/routes/appointments.ts,apps/api/drizzle/0002_appointments.sql,apps/web/src/app/agenda/agendaModule.tsx,apps/api/src/scripts/seedAppointments.ts,render.yaml]
   endpoints=[GET /api/appointments,POST /api/appointments,PATCH /api/appointments/:id/cancel,GET /api/appointments/updates]

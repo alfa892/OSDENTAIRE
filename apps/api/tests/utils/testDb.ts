@@ -10,6 +10,10 @@ CREATE TYPE consent_status AS ENUM ('pending','signed');
 CREATE TYPE provider_role AS ENUM ('dentist','orthodontist','hygienist');
 CREATE TYPE appointment_status AS ENUM ('scheduled','cancelled');
 CREATE TYPE appointment_note_type AS ENUM ('note','notification');
+CREATE TYPE invoice_status AS ENUM ('draft','issued','paid');
+CREATE TYPE payer_type AS ENUM ('patient','mutuelle','insurance','third_party');
+CREATE TYPE payment_source AS ENUM ('patient','mutuelle','insurance','other');
+CREATE TYPE insurance_claim_status AS ENUM ('draft','submitted','approved','rejected');
 
 CREATE TABLE patients (
     id UUID PRIMARY KEY,
@@ -48,6 +52,20 @@ CREATE TABLE consent_forms (
     status consent_status NOT NULL DEFAULT 'pending',
     signed_at TIMESTAMPTZ,
     file_url TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE payers (
+    id UUID PRIMARY KEY,
+    patient_id UUID REFERENCES patients(id) ON DELETE SET NULL,
+    type payer_type NOT NULL DEFAULT 'patient',
+    name TEXT NOT NULL,
+    email TEXT,
+    phone TEXT,
+    address_line1 TEXT,
+    postal_code TEXT,
+    city TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -103,6 +121,68 @@ CREATE TABLE appointment_notes (
     kind appointment_note_type NOT NULL DEFAULT 'note',
     body TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE invoices (
+    id UUID PRIMARY KEY,
+    reference TEXT NOT NULL UNIQUE,
+    patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE RESTRICT,
+    payer_id UUID NOT NULL REFERENCES payers(id) ON DELETE RESTRICT,
+    status invoice_status NOT NULL DEFAULT 'draft',
+    currency TEXT NOT NULL DEFAULT 'EUR',
+    total_excl_tax_cents INTEGER NOT NULL DEFAULT 0,
+    total_tax_cents INTEGER NOT NULL DEFAULT 0,
+    total_incl_tax_cents INTEGER NOT NULL DEFAULT 0,
+    paid_amount_cents INTEGER NOT NULL DEFAULT 0,
+    due_date TIMESTAMPTZ NOT NULL,
+    issued_at TIMESTAMPTZ,
+    paid_at TIMESTAMPTZ,
+    notes TEXT,
+    pdf_storage_key TEXT,
+    pdf_signed_url TEXT,
+    pdf_signed_url_expires_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE invoice_items (
+    id UUID PRIMARY KEY,
+    invoice_id UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+    description TEXT NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    unit_price_cents INTEGER NOT NULL,
+    tax_rate_bps INTEGER NOT NULL DEFAULT 2000,
+    total_excl_tax_cents INTEGER NOT NULL DEFAULT 0,
+    total_tax_cents INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE payments (
+    id UUID PRIMARY KEY,
+    invoice_id UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+    payer_id UUID NOT NULL REFERENCES payers(id) ON DELETE RESTRICT,
+    source payment_source NOT NULL DEFAULT 'patient',
+    method TEXT NOT NULL DEFAULT 'card',
+    amount_cents INTEGER NOT NULL,
+    notes TEXT,
+    reference TEXT,
+    paid_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE insurance_claims (
+    id UUID PRIMARY KEY,
+    invoice_id UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+    payer_id UUID NOT NULL REFERENCES payers(id) ON DELETE RESTRICT,
+    status insurance_claim_status NOT NULL DEFAULT 'draft',
+    claim_number TEXT,
+    coverage_percent INTEGER NOT NULL DEFAULT 0,
+    covered_amount_cents INTEGER NOT NULL DEFAULT 0,
+    filed_at TIMESTAMPTZ,
+    responded_at TIMESTAMPTZ,
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 `;
 
