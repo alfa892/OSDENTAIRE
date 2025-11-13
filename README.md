@@ -69,6 +69,8 @@ Définis `NEXT_PUBLIC_API_URL` (dans `apps/web/.env.local`) pour pointer vers to
 
 ```
 NEXT_PUBLIC_API_URL=http://localhost:5050
+NEXT_PUBLIC_DEMO_ROLE=assistant
+NEXT_PUBLIC_DEMO_USER=demo-assistant
 ```
 
 Pages disponibles : `/patients` (liste + drawer) et `/agenda` (vue hebdo colonne par praticien avec formulaire de création, annulation RBAC et polling temps réel).

@@ -1,6 +1,10 @@
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 const backendUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5050";
+const demoRole = process.env.NEXT_PUBLIC_DEMO_ROLE ?? "assistant";
+const demoUser = process.env.NEXT_PUBLIC_DEMO_USER ?? "demo-assistant";
 
 type Patient = {
   id: string;
@@ -53,7 +57,13 @@ const formatDate = (value: string) =>
 
 async function fetchPatients() {
   try {
-    const res = await fetch(`${backendUrl}/api/patients`, { cache: "no-store" });
+    const res = await fetch(`${backendUrl}/api/patients`, {
+      cache: "no-store",
+      headers: {
+        "x-user-role": demoRole,
+        "x-user-id": demoUser,
+      },
+    });
 
     if (!res.ok) throw new Error("API offline");
 
