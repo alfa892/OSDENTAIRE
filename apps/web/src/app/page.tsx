@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const backendUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5050";
 
 type Patient = {
@@ -125,6 +127,18 @@ export default async function Home() {
             >
               Déployer sur Vercel
             </a>
+            <Link
+              href="/patients"
+              className="rounded-full border border-emerald-400/60 px-6 py-3 text-base font-semibold text-emerald-200 transition hover:bg-emerald-500/10"
+            >
+              Voir le module patients
+            </Link>
+            <Link
+              href="/agenda"
+              className="rounded-full border border-white/30 px-6 py-3 text-base font-semibold text-white transition hover:bg-white/10"
+            >
+              Ouvrir l&apos;agenda RDV
+            </Link>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             {featureBlocks.map((feature) => (

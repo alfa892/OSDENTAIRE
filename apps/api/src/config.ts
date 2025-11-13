@@ -10,5 +10,6 @@ const numberFromEnv = (value: string | undefined, fallback: number) => {
 
 export const config = {
   port: numberFromEnv(process.env.API_PORT ?? process.env.PORT, 5050),
-  corsOrigin: process.env.CORS_ORIGIN ?? '*'
+  corsOrigin: process.env.CORS_ORIGIN ?? '*',
+  appointmentSlotMinutes: numberFromEnv(process.env.APPOINTMENTS_SLOT_MINUTES, 15),
 };

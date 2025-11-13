@@ -1,0 +1,55 @@
+services:
+  - type: web
+    name: osdentaire-api
+    env: node
+    rootDir: .
+    buildCommand: npm install && npm run build:api
+    startCommand: npm --workspace apps/api run start
+    plan: starter
+    autoDeploy: true
+    healthCheckPath: /healthz
+    preDeployCommand: npm run db:migrate && npm run patients:seed && npm run appointments:seed
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: PATIENTS_RETENTION_DAYS
+        value: '730'
+      - key: CORS_ORIGIN
+        value: https://osdentaire-web.onrender.com
+      - key: APPOINTMENTS_SLOT_MINUTES
+        value: '15'
+  - type: web
+    name: osdentaire-web
+    env: node
+    rootDir: .
+    buildCommand: npm install && npm run build:web
+    startCommand: npm --workspace apps/web run start
+    autoDeploy: true
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://osdentaire-api.onrender.com
+jobs:
+  - type: cron
+    name: patients-anonymize
+    env: node
+    rootDir: .
+    plan: starter
+    schedule: '0 2 * * *'
+    buildCommand: npm install
+    startCommand: npm run patients:anonymize
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: PATIENTS_RETENTION_DAYS
+        value: '730'
+  - type: cron
+    name: agenda-refresh
+    env: node
+    rootDir: .
+    plan: starter
+    schedule: '*/30 6-20 * * 1-5'
+    buildCommand: npm install
+    startCommand: npm run agenda:refresh
+    envVars:
+      - key: DATABASE_URL
+        sync: false
