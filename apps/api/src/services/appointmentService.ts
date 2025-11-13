@@ -335,28 +335,72 @@ export const createAppointmentService = (
   };
 
   const getById = async (appointmentId: string, includeNotes = true) => {
-    const row = await database.query.appointments.findFirst({
-      where: (table, { eq }) => eq(table.id, appointmentId),
-      with: {
-        provider: true,
-        room: true,
-        patient: true,
-        notes: includeNotes,
-      },
-    });
+    const rows = await database
+      .select({
+        id: appointments.id,
+        title: appointments.title,
+        status: appointments.status,
+        timezone: appointments.timezone,
+        startAt: appointments.startAt,
+        endAt: appointments.endAt,
+        slotMinutes: appointments.slotMinutes,
+        provider: {
+          id: providers.id,
+          fullName: providers.fullName,
+          initials: providers.initials,
+          color: providers.color,
+        },
+        room: {
+          id: rooms.id,
+          name: rooms.name,
+          color: rooms.color,
+        },
+        patient: {
+          id: patients.id,
+          fullName: patients.fullName,
+          reference: patients.reference,
+        },
+        cancelReason: appointments.cancelReason,
+        canceledAt: appointments.canceledAt,
+        createdBy: appointments.createdBy,
+        createdByRole: appointments.createdByRole,
+      })
+      .from(appointments)
+      .innerJoin(providers, eq(providers.id, appointments.providerId))
+      .innerJoin(rooms, eq(rooms.id, appointments.roomId))
+      .innerJoin(patients, eq(patients.id, appointments.patientId))
+      .where(eq(appointments.id, appointmentId))
+      .limit(1);
 
+    const row = rows[0];
     if (!row) {
       return null;
     }
 
-    const notes = row.notes?.map((note) => ({
-      id: note.id,
-      authorRole: note.authorRole,
-      authorName: note.authorName,
-      kind: note.kind,
-      body: note.body,
-      createdAt: note.createdAt.toISOString(),
-    }));
+    let notes: AppointmentNoteDTO[] | undefined;
+    if (includeNotes) {
+      const noteRows = await database
+        .select({
+          id: appointmentNotes.id,
+          authorRole: appointmentNotes.authorRole,
+          authorName: appointmentNotes.authorName,
+          kind: appointmentNotes.kind,
+          body: appointmentNotes.body,
+          createdAt: appointmentNotes.createdAt,
+        })
+        .from(appointmentNotes)
+        .where(eq(appointmentNotes.appointmentId, appointmentId))
+        .orderBy(asc(appointmentNotes.createdAt));
+
+      notes = noteRows.map((note) => ({
+        id: note.id,
+        authorRole: note.authorRole,
+        authorName: note.authorName,
+        kind: note.kind,
+        body: note.body,
+        createdAt: note.createdAt.toISOString(),
+      }));
+    }
 
     return mapAppointment({ ...row, notes });
   };

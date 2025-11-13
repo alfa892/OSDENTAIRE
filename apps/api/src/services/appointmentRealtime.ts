@@ -1,3 +1,5 @@
+import type { AppointmentDTO } from './appointmentService';
+
 export type AppointmentEventType = 'appointment.created' | 'appointment.cancelled';
 
 export type AppointmentRealtimeEvent<TData = unknown> = {
@@ -75,4 +77,6 @@ export class AppointmentRealtime<TData = unknown> {
   }
 }
 
-export const appointmentRealtime = new AppointmentRealtime();
+export type AppointmentRealtimeInstance = AppointmentRealtime<AppointmentDTO>;
+
+export const appointmentRealtime: AppointmentRealtimeInstance = new AppointmentRealtime<AppointmentDTO>();

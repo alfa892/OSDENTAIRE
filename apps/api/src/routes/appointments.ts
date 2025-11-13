@@ -12,7 +12,7 @@ import {
   type AppointmentService,
   AppointmentError,
 } from '../services/appointmentService';
-import { appointmentRealtime, type AppointmentRealtime } from '../services/appointmentRealtime';
+import { appointmentRealtime, type AppointmentRealtimeInstance } from '../services/appointmentRealtime';
 
 const buildValidationError = (error: ZodError) => ({
   message: 'validation_failed',
@@ -21,7 +21,7 @@ const buildValidationError = (error: ZodError) => ({
 
 export type AppointmentRouteDeps = {
   appointmentService?: AppointmentService;
-  realtime?: AppointmentRealtime;
+  realtime?: AppointmentRealtimeInstance;
 };
 
 export const registerAppointmentRoutes = (router: Router, deps: AppointmentRouteDeps = {}) => {

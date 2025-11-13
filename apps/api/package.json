@@ -30,6 +30,7 @@
     "@electric-sql/pglite": "^0.2.12",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
+    "@types/luxon": "^3.7.1",
     "@types/node": "^24.10.1",
     "@types/pg": "^8.11.6",
     "@types/supertest": "^2.0.16",

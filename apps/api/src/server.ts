@@ -6,13 +6,13 @@ import { registerPatientRoutes } from './routes/patients';
 import { registerAppointmentRoutes } from './routes/appointments';
 import { createPatientService, type PatientService } from './services/patientService';
 import { createAppointmentService, type AppointmentService } from './services/appointmentService';
-import { appointmentRealtime, type AppointmentRealtime } from './services/appointmentRealtime';
+import { appointmentRealtime, type AppointmentRealtimeInstance } from './services/appointmentRealtime';
 import type { Database } from './db/client';
 
 export type ServerDependencies = {
   patientService?: PatientService;
   appointmentService?: AppointmentService;
-  realtime?: AppointmentRealtime;
+  realtime?: AppointmentRealtimeInstance;
   db?: Database;
 };
 

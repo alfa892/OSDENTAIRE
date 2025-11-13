@@ -17,6 +17,7 @@ export const consentStatus = pgEnum('consent_status', ['pending', 'signed']);
 export const providerRole = pgEnum('provider_role', ['dentist', 'orthodontist', 'hygienist']);
 export const appointmentStatus = pgEnum('appointment_status', ['scheduled', 'cancelled']);
 export const appointmentNoteType = pgEnum('appointment_note_type', ['note', 'notification']);
+export type AppointmentNoteType = (typeof appointmentNoteType.enumValues)[number];
 
 export const patients = pgTable(
   'patients',

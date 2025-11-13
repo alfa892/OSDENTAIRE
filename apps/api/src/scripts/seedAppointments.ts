@@ -112,13 +112,18 @@ const ensurePatients = async () => {
     const patientId = patientPool[index % patientPool.length];
     const start = startOfWeek.plus({ days: slot.dayOffset }).set({ hour: slot.hour, minute: 0 });
 
+    const startIso = start.toISO();
+    if (!startIso) {
+      throw new Error('invalid_start_slot');
+    }
+
     await appointmentSvc.create(
       {
         providerId: slot.provider.id,
         roomId: slot.room.id,
         patientId,
         title: slot.title,
-        startAt: start.toISO(),
+        startAt: startIso,
         durationMinutes: slot.duration,
       },
       systemUser
