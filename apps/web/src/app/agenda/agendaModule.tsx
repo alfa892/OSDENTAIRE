@@ -30,6 +30,9 @@ type FormState = {
 };
 
 const defaultWeekStart = () => DateTime.now().setZone(PARIS_TZ).startOf('week');
+const isoDateOrFallback = (dateTime: DateTime) => dateTime.toISODate() ?? dateTime.toFormat('yyyy-LL-dd');
+const isoDateTimeOrFallback = (dateTime: DateTime) =>
+  dateTime.toISO() ?? dateTime.toFormat("yyyy-LL-dd'T'HH:mm:ss");
 
 const applyEventsToAgenda = (agenda: AgendaResponse, events: AppointmentEvent[]) => {
   if (!events.length) return agenda;
@@ -75,7 +78,7 @@ export default function AgendaModule() {
     patientId: '',
     providerId: '',
     roomId: '',
-    date: weekStart.toISODate(),
+    date: isoDateOrFallback(weekStart),
     time: '09:00',
     duration: 30,
     title: 'Consultation',
@@ -85,8 +88,8 @@ export default function AgendaModule() {
     async (signal?: AbortSignal) => {
       try {
         setLoading(true);
-        const start = weekStart.toUTC().toISO();
-        const end = weekStart.plus({ days: 7 }).toUTC().toISO();
+        const start = isoDateTimeOrFallback(weekStart.toUTC());
+        const end = isoDateTimeOrFallback(weekStart.plus({ days: 7 }).toUTC());
         const data = await fetchAgenda({ start, end }, role, signal);
         setAgenda(data);
         setCursor(data.meta.cursor);
@@ -128,7 +131,7 @@ export default function AgendaModule() {
       ...prev,
       providerId: prev.providerId || agenda.providers[0]?.id || '',
       roomId: prev.roomId || agenda.rooms[0]?.id || '',
-      date: prev.date || DateTime.fromISO(agenda.meta.start).toISODate(),
+      date: prev.date || isoDateOrFallback(DateTime.fromISO(agenda.meta.start)),
     }));
   }, [agenda]);
 
@@ -179,7 +182,9 @@ export default function AgendaModule() {
 
     try {
       setCreating(true);
-      const start = DateTime.fromISO(`${formState.date}T${formState.time}`, { zone: PARIS_TZ }).toISO();
+      const start = isoDateTimeOrFallback(
+        DateTime.fromISO(`${formState.date}T${formState.time}`, { zone: PARIS_TZ })
+      );
       if (!start) {
         setError('Format de date invalide.');
         return;
@@ -223,7 +228,7 @@ export default function AgendaModule() {
     const map = new Map<string, Record<string, Appointment[]>>();
     agenda.data.forEach((appointment) => {
       const providerId = appointment.provider.id;
-      const dayKey = DateTime.fromISO(appointment.startAt).setZone(PARIS_TZ).toISODate();
+      const dayKey = isoDateOrFallback(DateTime.fromISO(appointment.startAt).setZone(PARIS_TZ));
       const currentByDay = map.get(providerId) ?? {};
       const dayAppointments = currentByDay[dayKey] ?? [];
       currentByDay[dayKey] = [...dayAppointments, appointment].sort(
@@ -333,7 +338,7 @@ export default function AgendaModule() {
                         </header>
                         <div className="space-y-3">
                           {days.map((day) => {
-                            const dayKey = day.toISODate();
+                            const dayKey = isoDateOrFallback(day);
                             const list = appointmentsByProvider.get(provider.id)?.[dayKey] ?? [];
                             return (
                               <div key={dayKey} className="rounded-xl border border-white/5 bg-white/5 p-2">
